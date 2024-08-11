@@ -8,6 +8,7 @@
     onMount(async () => {
         version = await getVersion()
         await appWindow.setTitle(`${await appWindow.title()} v${version}`)
+        await appWindow.setDecorations(false)
     })
 </script>
 

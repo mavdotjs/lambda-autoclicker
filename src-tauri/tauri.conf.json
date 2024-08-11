@@ -17,7 +17,8 @@
         "close": true,
         "minimize": true,
         "startDragging": true,
-        "setTitle": true
+        "setTitle": true,
+        "setDecorations": true
       },
       "path": {
         "all": true
@@ -71,7 +72,7 @@
         "height": 612,
         "width": 800,
         "resizable": false,
-        "decorations": false
+        "decorations": true
       }
     ]
   }
