@@ -24,7 +24,7 @@ export default {
         },
       },
     ],
-    base: true,
+    base: false,
     utils: true,
     logs: true
   }

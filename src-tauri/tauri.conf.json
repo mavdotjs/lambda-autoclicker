@@ -24,6 +24,7 @@
         "all": true
       }
     },
+    "macOSPrivateApi": true,
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
@@ -67,12 +68,24 @@
     "windows": [
       {
         "title": "λ AutoClicker",
+        "label": "main",
         "fullscreen": false,
         "center": true,
         "height": 612,
         "width": 800,
         "resizable": false,
         "decorations": true
+      },
+      {
+        "title": "Mouse Position Selector",
+        "fullscreen": false,
+        "acceptFirstMouse": true,
+        "alwaysOnTop": true,
+        "decorations": false,
+        "skipTaskbar": true,
+        "url": "picker",
+        "label": "picker",
+        "transparent": true
       }
     ]
   }
