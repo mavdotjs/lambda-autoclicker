@@ -2,8 +2,37 @@
 	import Tabs from '$lib/Tabs.svelte';
 	import { open } from '@tauri-apps/plugin-shell';
 	import Radio from '$lib/Radio.svelte';
-
+	import { getCurrentWebviewWindow, WebviewWindow } from '@tauri-apps/api/webviewWindow';
+	const appWindow = getCurrentWebviewWindow()
 	const clicking = $state(false);
+
+    async function openPicker() {
+		const pickerWindow = new WebviewWindow('picker', {
+			url: '/picker',
+			transparent: true,
+			acceptFirstMouse: true,
+			decorations: false,
+			x: 0,
+			y: 0,
+			closable: false,
+			alwaysOnTop: true,
+			minimizable: false,
+			resizable: false
+		})
+		await pickerWindow.once('tauri://webview-created', async _ => {
+			await appWindow.hide()
+			console.log('created window')
+		})
+		await pickerWindow.once('tauri://destroyed', async _ => {
+			await appWindow.show()
+		})
+		await pickerWindow.listen<[number, number]>('mouse-val', async e => {
+			config.mouse_pos = { x: e.payload[0], y: e.payload[1] }
+		})
+		await pickerWindow.listen('log', e => {
+			console.log(e.payload)
+		})
+	}
 
 	function fixedAnchor(a: HTMLAnchorElement) {
 		a.onclick = async (e) => {
@@ -72,7 +101,7 @@
 		<Tabs bind:tab={config.mode}>
 			{#snippet _random()}
 			<div class="flex flex-col flex-grow">
-				<div class="join">
+				<div class="join w-max">
 					<label class="input input-sm input-bordered items-center gap-2 join-item">
 						min: <input type="number" min="0" bind:value={config.options_for_random.min} />ms
 					</label>
@@ -113,14 +142,14 @@
 	>
 	<input type="checkbox" bind:checked={config.do_mouse_pos} class="checkbox checkbox-primary" />
 	<div class="join">
-		<label class="input input-xs input-bordered items-center gap-2 join-item">
-			x <input type="number" min="0" bind:value={config.mouse_pos.x} />
+		<label class:input-disabled={!config.do_mouse_pos} class="input input-xs input-bordered items-center gap-2 join-item">
+			x <input disabled={!config.do_mouse_pos} type="number" min="0" bind:value={config.mouse_pos.x} />
 		</label>
-		<label class="input input-xs input-bordered items-center gap-2 join-item">
-			y <input type="number" min="0" bind:value={config.mouse_pos.y} />
+		<label class:input-disabled={!config.do_mouse_pos} class="input input-xs input-bordered items-center gap-2 join-item">
+			y <input disabled={!config.do_mouse_pos} type="number" min="0" bind:value={config.mouse_pos.y} />
 		</label>
 	</div>
-	<button class="btn btn-xs btn-primary flex-grow uppercase">pick</button>
+	<button disabled={!config.do_mouse_pos} onclick={openPicker} class="btn btn-xs btn-primary flex-grow uppercase">pick</button>
 </div>
 
 <div class="grid grid-cols-2 gap-x-2 mt-2 h-28">
@@ -155,7 +184,7 @@
 
 <div class="grid grid-cols-2 gap-4 h-16 mt-2 p-2 bg-base-200 rounded-box">
 	<button class="btn btn-block btn-neutral">Start <kbd class="kbd">F6</kbd></button>
-	<button class="btn btn-block btn-neutral">Change Keybind</button>
+	<button class="btn btn-block btn-neutral">Settings</button>
 </div>
 
 <div class="flex flex-row h-8 bg-base-200 mt-2 items-center px-2 rounded-box">

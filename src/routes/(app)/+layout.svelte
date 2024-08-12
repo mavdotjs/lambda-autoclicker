@@ -6,10 +6,6 @@
     let version = $state()
     const appWindow = getCurrentWebviewWindow()
 
-    async function openPicker() {
-
-    }
-
     onMount(async () => {
         version = await getVersion()
         if(!(await appWindow.title()).endsWith(`v${version}`)) await appWindow.setTitle(`${await appWindow.title()} v${version}`)
