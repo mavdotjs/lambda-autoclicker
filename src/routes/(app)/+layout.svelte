@@ -15,7 +15,6 @@
         if(!(await appWindow.title()).endsWith(`v${version}`)) await appWindow.setTitle(`${await appWindow.title()} v${version}`)
         await appWindow.setDecorations(false)
         await appWindow.setMinimizable(true)
-        window.appWindow = appWindow
     })
 </script>
 
