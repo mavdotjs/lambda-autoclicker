@@ -22,8 +22,7 @@
 		})
 		await pickerWindow.once('tauri://webview-created', async _ => {
 			picking = true
-			// await appWindow.hide()
-			console.log('created window')
+			await appWindow.hide()
 		})
 		await pickerWindow.once('tauri://destroyed', async _ => {
 			picking = false
@@ -31,9 +30,6 @@
 		})
 		await pickerWindow.listen<[number, number]>('mouse-val', async e => {
 			config.mouse_pos = { x: e.payload[0], y: e.payload[1] }
-		})
-		await pickerWindow.listen('log', e => {
-			console.log(e.payload)
 		})
 	}
 

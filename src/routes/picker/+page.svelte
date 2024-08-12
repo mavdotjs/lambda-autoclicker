@@ -25,8 +25,6 @@
 
     async function set_current_mouse() {
         const mouse_pos = await invoke('mouse_pos')
-        console.log(mouse_pos)
-
         await appWindow.emit('mouse-val', mouse_pos)
         await appWindow.close()
     }
