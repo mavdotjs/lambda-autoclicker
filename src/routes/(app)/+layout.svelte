@@ -20,7 +20,7 @@
 </script>
 
 <div class="!h-full w-full flex flex-col select-none pt-2 bg-base-100">
-    <nav class="flex items-center mx-2 bg-base-200 pl-2 rounded-box">
+    <nav class="flex items-center mx-2 bg-base-200 pl-2 rounded-box grow-0">
         <!-- svelte-ignore a11y_interactive_supports_focus -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="flex-grow flex justify-between items-center">
@@ -34,5 +34,5 @@
             </button>
         </div>
     </nav>
-    <main class="flex-grow mx-2 mt-1 mb-2 h-fit">{@render children()}</main>
+    <main class="mx-2 mt-1 mb-2 h-fit">{@render children()}</main>
 </div>

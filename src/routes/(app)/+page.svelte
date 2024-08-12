@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Tabs from '$lib/Tabs.svelte';
-	import { Store } from 'tauri-plugin-store-api';
 	import { open } from '@tauri-apps/plugin-shell';
 	import Radio from '$lib/Radio.svelte';
 
@@ -14,15 +13,15 @@
 	}
 	class SavedState {
 		mode = $state<string>('random');
-		options_for_fixed = $state({});
-		options_for_random = $state<{ min: number; max: number }>({ min: 0, max: 0 });
+		options_for_fixed = $state({ h: 0, m: 0, s: 0, ms: 0 });
+		options_for_random = $state({ min: 0, max: 0 });
 
 		selected_count = $state<string>('forever');
 		button = $state<string>('left');
 		quantity = $state<string>('single');
 
 		do_mouse_pos = $state(false);
-		mouse_pos = $state<{ x: number, y: number }>({ x: 0, y: 0 });
+		mouse_pos = $state({ x: 0, y: 0 });
 
 		constructor() {
 			$inspect(this.mode, this.options_for_fixed, this.options_for_random);
@@ -31,9 +30,7 @@
 				if (first) {
 					this.mode = localStorage.getItem('mode') || this.mode;
 					const fixedLoaded = localStorage.getItem('fixed');
-					this.options_for_fixed = fixedLoaded
-						? JSON.parse(fixedLoaded)
-						: this.options_for_fixed;
+					this.options_for_fixed = fixedLoaded ? JSON.parse(fixedLoaded) : this.options_for_fixed;
 					const randomLoaded = localStorage.getItem('random');
 					this.options_for_random = randomLoaded
 						? JSON.parse(randomLoaded)
@@ -43,10 +40,12 @@
 					this.button = localStorage.getItem('mouse_button') || this.button;
 					this.quantity = localStorage.getItem('quantity') || this.quantity;
 
-					const loaded_mouse_pos = localStorage.getItem('pos')
-					this.mouse_pos = loaded_mouse_pos ? JSON.parse(loaded_mouse_pos) : this.mouse_pos
-					const loaded_do_mouse_pos = localStorage.getItem('use_mouse_pos')
-					this.do_mouse_pos = loaded_do_mouse_pos ? JSON.parse(loaded_do_mouse_pos) : this.do_mouse_pos
+					const loaded_mouse_pos = localStorage.getItem('pos');
+					this.mouse_pos = loaded_mouse_pos ? JSON.parse(loaded_mouse_pos) : this.mouse_pos;
+					const loaded_do_mouse_pos = localStorage.getItem('use_mouse_pos');
+					this.do_mouse_pos = loaded_do_mouse_pos
+						? JSON.parse(loaded_do_mouse_pos)
+						: this.do_mouse_pos;
 
 					first = false;
 				}
@@ -54,26 +53,25 @@
 				localStorage.setItem('fixed', JSON.stringify(this.options_for_fixed));
 				localStorage.setItem('random', JSON.stringify(this.options_for_random));
 
-				localStorage.setItem('selected_count', this.selected_count)
-				localStorage.setItem('mouse_button', this.button)
-				localStorage.setItem('quantity', this.quantity)
-				localStorage.setItem('pos', JSON.stringify(this.mouse_pos))
+				localStorage.setItem('selected_count', this.selected_count);
+				localStorage.setItem('mouse_button', this.button);
+				localStorage.setItem('quantity', this.quantity);
+				localStorage.setItem('pos', JSON.stringify(this.mouse_pos));
 
-				localStorage.setItem('use_mouse_pos', JSON.stringify(this.do_mouse_pos))
+				localStorage.setItem('use_mouse_pos', JSON.stringify(this.do_mouse_pos));
 			});
 		}
 	}
 	let config = new SavedState();
 </script>
 
-<div class="bg-base-200 h-48 rounded-box">
-	<span class="text-neutral uppercase font-appbartop ml-2"
+<div class="bg-base-200 h-48 rounded-box px-1 flex flex-col pb-1">
+	<span class="text-neutral uppercase font-appbartop ml-1"
 		><span class="border-b">click interval</span></span
-	>
-	<Tabs bind:tab={config.mode}>
-		{#snippet _random()}
-			<div class="flex flex-col">
-				<span class="text-xs"> Time between each click will be random number between: </span>
+		>
+		<Tabs bind:tab={config.mode}>
+			{#snippet _random()}
+			<div class="flex flex-col flex-grow">
 				<div class="join">
 					<label class="input input-sm input-bordered items-center gap-2 join-item">
 						min: <input type="number" min="0" bind:value={config.options_for_random.min} />ms
@@ -82,19 +80,38 @@
 						max: <input type="number" min="0" bind:value={config.options_for_random.max} />ms
 					</label>
 				</div>
+				<div class="flex-grow"></div>
+				<span class="text-xs"> Time between each click will be random number between the 2 values</span>
 			</div>
 		{/snippet}
 		{#snippet _fixed()}
-			<span class="text-xs">Time between click</span>
+			<div class="flex flex-col flex-grow">
+				<div class="grid grid-cols-2 grid-rows-2">
+					<label class="rounded-r-none rounded-b-none input input-sm input-bordered items-center flex gap-2">
+						<input class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.h} />h
+					</label>
+					<label class="rounded-l-none rounded-b-none input input-sm input-bordered items-center flex gap-2">
+						<input class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.m} />m
+					</label>
+					<label class="rounded-r-none rounded-t-none input input-sm input-bordered items-center flex gap-2">
+						<input class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.s} />s
+					</label>
+					<label class="rounded-l-none rounded-t-none input input-sm input-bordered items-center flex gap-2">
+						<input class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.ms} />ms
+					</label>
+				</div>
+				<div class="flex-grow"></div>
+				<span class="text-xs">Time between click will be exactly the above time</span>
+			</div>
 		{/snippet}
 	</Tabs>
 </div>
 
-<div class="bg-base-200 flex flex-row px-1 pr-2 mt-2 gap-x-2 h-10 items-center rounded-box">
+<div class="bg-base-200 flex flex-row pl-1 pr-2 mt-2 gap-x-2 h-10 items-center rounded-box">
 	<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 		><span class="border-b">mouse position</span></span
 	>
-	<input type="checkbox" bind:checked={config.do_mouse_pos} class="checkbox checkbox-primary">
+	<input type="checkbox" bind:checked={config.do_mouse_pos} class="checkbox checkbox-primary" />
 	<div class="join">
 		<label class="input input-xs input-bordered items-center gap-2 join-item">
 			x <input type="number" min="0" bind:value={config.mouse_pos.x} />
@@ -138,7 +155,7 @@
 
 <div class="grid grid-cols-2 gap-4 h-16 mt-2 p-2 bg-base-200 rounded-box">
 	<button class="btn btn-block btn-neutral">Start <kbd class="kbd">F6</kbd></button>
-	<button class="btn btn-block btn-neutral">Keybinds</button>
+	<button class="btn btn-block btn-neutral">Change Keybind</button>
 </div>
 
 <div class="flex flex-row h-8 bg-base-200 mt-2 items-center px-2 rounded-box">

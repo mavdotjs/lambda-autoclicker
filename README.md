@@ -8,3 +8,4 @@
  - Random interval timer
  - Fixed interval timer
  - Double clicking
+ - Updating (REMEMBER TO CHECK ~/.tauri/lambautoclicker.key!!!!!!!)
