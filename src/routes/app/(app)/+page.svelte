@@ -3,21 +3,61 @@
 	import { open } from '@tauri-apps/plugin-shell';
 	import Radio from '$lib/Radio.svelte';
 	import { getCurrentWebviewWindow, WebviewWindow } from '@tauri-apps/api/webviewWindow';
+	import { get, writable } from 'svelte/store';
+	import { invoke } from '@tauri-apps/api/core';
 	const appWindow = getCurrentWebviewWindow();
 	let clicking = $state(false);
 	let picking = $state(false);
 	let max_input: HTMLInputElement;
+	const clickingStore = writable($state.snapshot(clicking)); // I had no idea how to do it otherwise
+	$effect(() => {
+		window.isClicking = clickingStore
+		clickingStore.set(clicking)
+	})
+	clickingStore.subscribe(async v => {
+		if(v) {
+			let timesLeft = config.repeat_type == 'number'?config.repeat_x_count:Infinity
+			for(;;) {
+				if(config.do_mouse_pos) {
+					await invoke('set_mouse_pos', { location: [config.mouse_pos.x, config.mouse_pos.y] })
+				}
+				await invoke('mouse_button', { double: config.backend__double, button: config.backend__button })
+				console.log('click')
+				timesLeft--
+				if(!get(clickingStore) || timesLeft == 0) { break }
+				await waitForTimeOrStop()
+			}
+		}
+		clicking = false
+	})
+	
+
 	const getTime = (): number => {
 		if (config.mode === 'fixed') {
 			const minutes = config.options_for_fixed.m + config.options_for_fixed.h * 60;
 			const seconds = config.options_for_fixed.s + minutes * 60;
 			return config.options_for_fixed.ms + seconds * 1000;
 		} else if (config.mode === 'random') {
-			Math.floor(Math.random() * 6) + 1;
+			return Math.floor(Math.random() * (config.options_for_random.max - config.options_for_random.min + 1)) + config.options_for_random.min
 		}
 	};
-	const waitForTimeOrStop = () => {};
+	const waitForTimeOrStop = async () => {
+		return new Promise<void>((res, rej) => {
+			const timeout = setTimeout(() => {
+				res()
+				stop()
+			}, getTime())
+			const unsub = clickingStore.subscribe(v => {
+				if(v == false) { stop(); rej() }
+			})
 
+			function stop() {
+				unsub()
+				clearTimeout(timeout)
+			}
+		})
+	};
+	
 	const fixMinMax = () => {
 		if (
 			config.options_for_random.min >= config.options_for_random.max &&
@@ -77,6 +117,14 @@
 
 		do_mouse_pos = $state(false);
 		mouse_pos = $state({ x: 0, y: 0 });
+
+		backend__double = $derived(this.quantity === 'double')
+		backend__button = $derived.by(() => {
+			if(this.button === 'left') return 0
+			else if(this.button === 'middle') return 1
+			else if(this.button === 'right') return 2
+		})
+
 
 		constructor() {
 			let first = true;
@@ -295,7 +343,7 @@
 </div>
 
 <div id="main-buttons" class="grid grid-cols-2 gap-4 h-16 mt-2 p-2 bg-base-200 rounded-box">
-	<button class="btn btn-block btn-neutral">Start <kbd class="kbd">F6</kbd></button>
+	<button class="btn btn-block btn-neutral" onclick={() => clicking = true}>{#if clicking}Stop{:else}Start{/if} <kbd class="kbd">F6</kbd></button>
 	<button disabled={disabledCandidate()} class="btn btn-block btn-neutral">Settings</button>
 </div>
 

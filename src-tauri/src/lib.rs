@@ -4,9 +4,9 @@
 use enigo::{Button, Enigo, Mouse, Settings};
 
 #[tauri::command]
-fn mouse_button(double: bool, button_id: i32) -> Result<(), String> {
+fn mouse_button(double: bool, button: i32) -> Result<(), String> {
     let mut enigo = Enigo::new(&Settings::default()).or(Err("Failed to load enigo"))?;
-    let button: Button = match button_id {
+    let button: Button = match button {
         0 => Ok(Button::Left),
         1 => Ok(Button::Middle),
         2 => Ok(Button::Right),
