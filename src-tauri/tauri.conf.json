@@ -50,6 +50,7 @@
     }
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "λ AutoClicker",

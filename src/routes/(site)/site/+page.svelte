@@ -41,18 +41,23 @@
 	<main class="mx-2 mt-1 mb-2 h-full flex flex-col">
 		<!-- depends on if I wanna put more stuff here or not: -->
 		<!-- <div class="flex-grow"></div> -->
-		<div class="bg-base-200 rounded-box px-1 h-80 flex flex-col pb-1 pl-1 mb-2 prose !max-w-none">
-			<span class="text-neutral uppercase font-appbartop ml-1"
-				><span class="border-b">features</span></span
-			>
-			You can:
-			<ul>
-				<li>Set a specific point for the cursor</li>
-				<li>Choose a custom keybind (it works even if the app is not in the foreground)</li>
-				<li>Select the mouse button that will be clicked</li>
-				<li>Use single or double click</li>
-				<li>Repeat a certain number of times, or </li>
-			</ul>
+		<div class="bg-base-200 rounded-box px-1 h-80 grid pb-1 pl-1 mb-2 grid-cols-2">
+			<div class="flex flex-col prose !max-w-none">
+				<span class="text-neutral uppercase font-appbartop ml-1"
+					><span class="border-b">features</span></span
+				>
+				You can:
+				<ul>
+					<li>Set a specific point for the cursor</li>
+					<li><s title="Not yet implemented">Choose a custom keybind </s> (it works even if the app is not in the foreground)</li>
+					<li>Select the mouse button that will be clicked</li>
+					<li>Use single or double click</li>
+					<li>Repeat a certain number of times, or Until stopped</li>
+				</ul>
+			</div>
+			<div class="flex items-center justify-center">
+				<img src="/screenshot.png" alt="" class="h-72">
+			</div>
 		</div>
 		<div class="bg-base-200 rounded-box px-1 h-44 flex flex-col pb-1 pl-1">
 			<span class="text-neutral uppercase font-appbartop ml-1"

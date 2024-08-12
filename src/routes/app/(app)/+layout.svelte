@@ -2,10 +2,10 @@
     import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
     import { getVersion } from "@tauri-apps/api/app"
 	import { onMount } from "svelte";
-    const { children } = $props()
+    const { children, data } = $props()
     let version = $state()
     const appWindow = getCurrentWebviewWindow()
-
+    console.log(data)
     onMount(async () => {
         version = await getVersion()
         if(!(await appWindow.title()).endsWith(`v${version}`)) await appWindow.setTitle(`${await appWindow.title()} v${version}`)

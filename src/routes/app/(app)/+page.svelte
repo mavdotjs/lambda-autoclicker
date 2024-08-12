@@ -5,9 +5,13 @@
 	import { getCurrentWebviewWindow, WebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import { get, writable } from 'svelte/store';
 	import { invoke } from '@tauri-apps/api/core';
+	import { onMount } from 'svelte';
+	import { register, unregister, type ShortcutEvent } from '@tauri-apps/plugin-global-shortcut';
 	const appWindow = getCurrentWebviewWindow();
 	let clicking = $state(false);
 	let picking = $state(false);
+	let pickerWindow = $state<WebviewWindow>()
+
 	let max_input: HTMLInputElement;
 	const clickingStore = writable($state.snapshot(clicking)); // I had no idea how to do it otherwise
 	$effect(() => {
@@ -69,7 +73,7 @@
 	$effect(fixMinMax)
 
 	async function openPicker() {
-		const pickerWindow = new WebviewWindow('picker', {
+		pickerWindow = new WebviewWindow('picker', {
 			url: '/app/picker',
 			transparent: true,
 			acceptFirstMouse: true,
@@ -84,10 +88,14 @@
 		await pickerWindow.once('tauri://webview-created', async (_) => {
 			picking = true;
 			await appWindow.minimize();
+			setTimeout(async () => {
+				await pickerWindow?.emit('setkeybind', config.picker_keybind)
+			})
 		});
 		await pickerWindow.once('tauri://destroyed', async (_) => {
 			picking = false;
 			await appWindow.unminimize();
+			pickerWindow = undefined;
 		});
 		await pickerWindow.listen<[number, number]>('mouse-val', async (e) => {
 			config.mouse_pos = { x: e.payload[0], y: e.payload[1] };
@@ -111,7 +119,7 @@
 		options_for_random = $state({ min: 0, max: 0 });
 
 		repeat_type = $state<'forever' | 'number'>('forever');
-		repeat_x_count = $state<number>(10);
+		repeat_x_count = $state(10);
 		button = $state<'left' | 'middle' | 'right'>('left');
 		quantity = $state<'single' | 'double'>('single');
 
@@ -124,6 +132,9 @@
 			else if(this.button === 'middle') return 1
 			else if(this.button === 'right') return 2
 		})
+
+		main_keybind = $state("Alt+C")
+		picker_keybind = $state('K')
 
 
 		constructor() {
@@ -172,6 +183,58 @@
 		}
 	}
 	let config = new SavedState();
+
+	let prev_main_kb = config.main_keybind
+	let prev_picker_kb = config.picker_keybind
+	let lastPKB_press: Date | null = null;
+	let lastMKB_press: Date | null = null;
+
+	function toggleClicking() {
+		clicking = !clicking
+	}
+	function picker_kb(e: ShortcutEvent) {
+		if(e.state === 'Pressed') lastPKB_press = new Date()
+		if(e.state === 'Released' && new Date().getTime() - lastPKB_press?.getTime()! <= 500 && pickerWindow) {
+			pickerWindow.emit('keybind')
+		}
+	}
+	
+
+	function main_kb(e: ShortcutEvent) {
+		if(e.state === 'Pressed') lastMKB_press = new Date()
+		if(e.state === 'Released' && new Date().getTime() - lastMKB_press?.getTime()! <= 500) {
+			toggleClicking()
+		}
+	}
+
+	$effect(() => {
+		register(config.main_keybind, main_kb).catch((r) => {
+			console.log(r)
+		})
+		prev_main_kb = config.main_keybind
+		return () => {
+			unregister(prev_main_kb)
+		}
+	})
+	$effect(() => {
+		if(picking) {
+			register(config.picker_keybind, picker_kb)
+			register('ESC', e => {
+				if(e.state === 'Pressed') {
+					pickerWindow?.close()
+				}
+			})
+		} else {
+			unregister(prev_picker_kb)
+			unregister('ESC')
+		}
+		prev_picker_kb = config.picker_keybind
+		return () => {
+			unregister(prev_picker_kb)
+			unregister('ESC')
+		}
+	})
+
 </script>
 
 <div id="section-click-interval" class="bg-base-200 h-48 rounded-box px-1 flex flex-col pb-1">
@@ -343,8 +406,8 @@
 </div>
 
 <div id="main-buttons" class="grid grid-cols-2 gap-4 h-16 mt-2 p-2 bg-base-200 rounded-box">
-	<button class="btn btn-block btn-neutral" onclick={() => clicking = true}>{#if clicking}Stop{:else}Start{/if} <kbd class="kbd">F6</kbd></button>
-	<button disabled={disabledCandidate()} class="btn btn-block btn-neutral">Settings</button>
+	<button class="btn btn-block btn-neutral" onclick={toggleClicking}>{#if clicking}Stop{:else}Start{/if} <kbd class="kbd">{config.main_keybind}</kbd></button>
+	<button title="Not implemented" disabled={disabledCandidate(true)} class="btn btn-block btn-neutral">Settings</button>
 </div>
 
 <div id="info" class="flex flex-row h-8 bg-base-200 mt-2 items-center px-2 rounded-box">
