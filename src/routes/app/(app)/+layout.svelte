@@ -22,11 +22,16 @@
             <div class="flex-grow flex justify-between" data-tauri-drag-region onmousedown={() => appWindow.startDragging()}>
                 <div class="font-appbartop"> <abbr title="Lambda">λ</abbr> Autoclicker <span class="text-slate-500 font-sans lowercase">v{version}</span></div>
             </div>
-            <button class="btn btn-xs btn-error btn-square btn-outline no-animation" onclick={() => appWindow.minimize()}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+            <div class="join">
+                <button class="join-item btn btn-xs btn-warning btn-square btn-outline no-animation" onclick={() => appWindow.minimize()}>
+                    ♢
+                </button>
+                <button class="join-item btn btn-xs btn-error btn-square btn-outline no-animation" onclick={() => appWindow.close()}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
         </div>
     </nav>
     <main class="mx-2 mt-1 mb-2 h-fit">{@render children()}</main>

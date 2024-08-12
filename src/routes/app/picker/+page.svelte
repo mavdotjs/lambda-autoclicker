@@ -1,6 +1,6 @@
 <script lang=ts>
 	import { invoke } from "@tauri-apps/api/core";
-    import { getCurrentWebviewWindow, getAllWebviewWindows } from "@tauri-apps/api/webviewWindow"
+    import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
     import { currentMonitor } from "@tauri-apps/api/window"
 	import { onMount } from "svelte";
 

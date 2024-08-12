@@ -1,6 +1,6 @@
 {
   "build": {
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "FOR=tauri npm run build",
     "beforeDevCommand": "npm run dev",
     "frontendDist": "../build",
     "devUrl": "http://localhost:5173"
@@ -55,6 +55,7 @@
         "title": "λ AutoClicker",
         "label": "main",
         "fullscreen": false,
+        "url": "/app",
         "center": true,
         "height": 517,
         "width": 800,

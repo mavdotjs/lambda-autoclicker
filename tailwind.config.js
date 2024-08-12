@@ -1,4 +1,5 @@
 import daisyui from "daisyui"
+import typography from "@tailwindcss/typography"
 import themes from "daisyui/src/theming/themes"
 import { fontFamily } from "tailwindcss/defaultTheme"
 
@@ -13,7 +14,7 @@ export default {
       }
     },
   },
-  plugins: [daisyui],
+  plugins: [typography, daisyui],
   daisyui: {
     themes: [
       {

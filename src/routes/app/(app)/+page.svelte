@@ -3,13 +3,34 @@
 	import { open } from '@tauri-apps/plugin-shell';
 	import Radio from '$lib/Radio.svelte';
 	import { getCurrentWebviewWindow, WebviewWindow } from '@tauri-apps/api/webviewWindow';
-	const appWindow = getCurrentWebviewWindow()
-	let clicking = $state(false)
-	let picking = $state(false)
+	const appWindow = getCurrentWebviewWindow();
+	let clicking = $state(false);
+	let picking = $state(false);
+	let max_input: HTMLInputElement;
+	const getTime = (): number => {
+		if (config.mode === 'fixed') {
+			const minutes = config.options_for_fixed.m + config.options_for_fixed.h * 60;
+			const seconds = config.options_for_fixed.s + minutes * 60;
+			return config.options_for_fixed.ms + seconds * 1000;
+		} else if (config.mode === 'random') {
+			Math.floor(Math.random() * 6) + 1;
+		}
+	};
+	const waitForTimeOrStop = () => {};
 
-    async function openPicker() {
+	const fixMinMax = () => {
+		if (
+			config.options_for_random.min >= config.options_for_random.max &&
+			document.activeElement !== max_input
+		) {
+			config.options_for_random.max = config.options_for_random.min + 1;
+		}
+	};
+	$effect(fixMinMax)
+
+	async function openPicker() {
 		const pickerWindow = new WebviewWindow('picker', {
-			url: '/picker',
+			url: '/app/picker',
 			transparent: true,
 			acceptFirstMouse: true,
 			decorations: false,
@@ -19,18 +40,18 @@
 			alwaysOnTop: true,
 			minimizable: false,
 			resizable: false
-		})
-		await pickerWindow.once('tauri://webview-created', async _ => {
-			picking = true
-			await appWindow.hide()
-		})
-		await pickerWindow.once('tauri://destroyed', async _ => {
-			picking = false
-			await appWindow.show()
-		})
-		await pickerWindow.listen<[number, number]>('mouse-val', async e => {
-			config.mouse_pos = { x: e.payload[0], y: e.payload[1] }
-		})
+		});
+		await pickerWindow.once('tauri://webview-created', async (_) => {
+			picking = true;
+			await appWindow.minimize();
+		});
+		await pickerWindow.once('tauri://destroyed', async (_) => {
+			picking = false;
+			await appWindow.unminimize();
+		});
+		await pickerWindow.listen<[number, number]>('mouse-val', async (e) => {
+			config.mouse_pos = { x: e.payload[0], y: e.payload[1] };
+		});
 	}
 
 	function fixedAnchor(a: HTMLAnchorElement) {
@@ -41,40 +62,47 @@
 	}
 
 	function disabledCandidate(value: boolean = false) {
-		return picking || clicking || value
+		return picking || clicking || value;
 	}
+
 	class SavedState {
-		mode = $state<string>('random');
+		mode = $state<'random' | 'fixed'>('random');
 		options_for_fixed = $state({ h: 0, m: 0, s: 0, ms: 0 });
 		options_for_random = $state({ min: 0, max: 0 });
 
-		selected_count = $state<string>('forever');
-		button = $state<string>('left');
-		quantity = $state<string>('single');
+		repeat_type = $state<'forever' | 'number'>('forever');
+		repeat_x_count = $state<number>(10);
+		button = $state<'left' | 'middle' | 'right'>('left');
+		quantity = $state<'single' | 'double'>('single');
 
 		do_mouse_pos = $state(false);
 		mouse_pos = $state({ x: 0, y: 0 });
 
 		constructor() {
-			$inspect(this.mode, this.options_for_fixed, this.options_for_random);
 			let first = true;
 			$effect(() => {
 				if (first) {
+					const loaded_x_count = localStorage.getItem('repeat_count');
+					const loaded_fixed_options = localStorage.getItem('fixed');
+					const loaded_random_options = localStorage.getItem('random');
+					const loaded_mouse_pos = localStorage.getItem('pos');
+					const loaded_do_mouse_pos = localStorage.getItem('use_mouse_pos');
+
 					this.mode = localStorage.getItem('mode') || this.mode;
-					const fixedLoaded = localStorage.getItem('fixed');
-					this.options_for_fixed = fixedLoaded ? JSON.parse(fixedLoaded) : this.options_for_fixed;
-					const randomLoaded = localStorage.getItem('random');
-					this.options_for_random = randomLoaded
-						? JSON.parse(randomLoaded)
+					this.options_for_fixed = loaded_fixed_options
+						? JSON.parse(loaded_fixed_options)
+						: this.options_for_fixed;
+					this.options_for_random = loaded_random_options
+						? JSON.parse(loaded_random_options)
 						: this.options_for_random;
 
-					this.selected_count = localStorage.getItem('selected_count') || this.selected_count;
+					this.repeat_x_count = loaded_x_count ? JSON.parse(loaded_x_count) : this.repeat_x_count;
+
+					this.repeat_type = localStorage.getItem('repeat_type') || this.repeat_type;
 					this.button = localStorage.getItem('mouse_button') || this.button;
 					this.quantity = localStorage.getItem('quantity') || this.quantity;
 
-					const loaded_mouse_pos = localStorage.getItem('pos');
 					this.mouse_pos = loaded_mouse_pos ? JSON.parse(loaded_mouse_pos) : this.mouse_pos;
-					const loaded_do_mouse_pos = localStorage.getItem('use_mouse_pos');
 					this.do_mouse_pos = loaded_do_mouse_pos
 						? JSON.parse(loaded_do_mouse_pos)
 						: this.do_mouse_pos;
@@ -85,7 +113,8 @@
 				localStorage.setItem('fixed', JSON.stringify(this.options_for_fixed));
 				localStorage.setItem('random', JSON.stringify(this.options_for_random));
 
-				localStorage.setItem('selected_count', this.selected_count);
+				localStorage.setItem('repeat_type', this.repeat_type);
+				localStorage.setItem('repeat_count', JSON.stringify(this.repeat_x_count));
 				localStorage.setItem('mouse_button', this.button);
 				localStorage.setItem('quantity', this.quantity);
 				localStorage.setItem('pos', JSON.stringify(this.mouse_pos));
@@ -100,36 +129,82 @@
 <div id="section-click-interval" class="bg-base-200 h-48 rounded-box px-1 flex flex-col pb-1">
 	<span class="text-neutral uppercase font-appbartop ml-1"
 		><span class="border-b">click interval</span></span
-		>
-		<Tabs disabled={disabledCandidate()} bind:tab={config.mode}>
-			{#snippet _random()}
+	>
+	<Tabs disabled={disabledCandidate()} bind:tab={config.mode}>
+		{#snippet _random()}
 			<div id="tab-random-click-interval" class="flex flex-col flex-grow">
 				<div class="join w-max">
 					<label class="input input-sm input-bordered items-center gap-2 join-item">
-						min: <input disabled={disabledCandidate()} type="number" min="0" bind:value={config.options_for_random.min} />ms
+						min: <input
+							disabled={disabledCandidate()}
+							type="number"
+							min="0"
+							bind:value={config.options_for_random.min}
+						/>ms
 					</label>
 					<label class="input input-sm input-bordered items-center gap-2 join-item">
-						max: <input disabled={disabledCandidate()} type="number" min="0" bind:value={config.options_for_random.max} />ms
+						max: <input
+							disabled={disabledCandidate()}
+							bind:this={max_input}
+							type="number"
+							min={config.options_for_random.min + 1}
+							onchange={fixMinMax}
+							bind:value={config.options_for_random.max}
+						/>ms
 					</label>
 				</div>
 				<div class="flex-grow"></div>
-				<span class="text-xs"> Time between each click will be random number between the 2 values</span>
+				<span class="text-xs">
+					Time between each click will be random number between the 2 values</span
+				>
 			</div>
 		{/snippet}
 		{#snippet _fixed()}
 			<div id="tab-random-click-interval" class="flex flex-col flex-grow">
 				<div class="grid grid-cols-2 grid-rows-2">
-					<label class="rounded-r-none rounded-b-none input input-sm input-bordered items-center flex gap-2">
-						<input disabled={disabledCandidate()} class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.h} />h
+					<label
+						class="rounded-r-none rounded-b-none input input-sm input-bordered items-center flex gap-2"
+					>
+						<input
+							disabled={disabledCandidate()}
+							class="flex-grow"
+							type="number"
+							min="0"
+							bind:value={config.options_for_fixed.h}
+						/>h
 					</label>
-					<label class="rounded-l-none rounded-b-none input input-sm input-bordered items-center flex gap-2">
-						<input disabled={disabledCandidate()} class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.m} />m
+					<label
+						class="rounded-l-none rounded-b-none input input-sm input-bordered items-center flex gap-2"
+					>
+						<input
+							disabled={disabledCandidate()}
+							class="flex-grow"
+							type="number"
+							min="0"
+							bind:value={config.options_for_fixed.m}
+						/>m
 					</label>
-					<label class="rounded-r-none rounded-t-none input input-sm input-bordered items-center flex gap-2">
-						<input disabled={disabledCandidate()} class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.s} />s
+					<label
+						class="rounded-r-none rounded-t-none input input-sm input-bordered items-center flex gap-2"
+					>
+						<input
+							disabled={disabledCandidate()}
+							class="flex-grow"
+							type="number"
+							min="0"
+							bind:value={config.options_for_fixed.s}
+						/>s
 					</label>
-					<label class="rounded-l-none rounded-t-none input input-sm input-bordered items-center flex gap-2">
-						<input disabled={disabledCandidate()} class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.ms} />ms
+					<label
+						class="rounded-l-none rounded-t-none input input-sm input-bordered items-center flex gap-2"
+					>
+						<input
+							disabled={disabledCandidate()}
+							class="flex-grow"
+							type="number"
+							min="0"
+							bind:value={config.options_for_fixed.ms}
+						/>ms
 					</label>
 				</div>
 				<div class="flex-grow"></div>
@@ -139,20 +214,48 @@
 	</Tabs>
 </div>
 
-<div id="section-mouse-position" class="bg-base-200 flex flex-row pl-1 pr-2 mt-2 gap-x-2 h-10 items-center rounded-box">
+<div
+	id="section-mouse-position"
+	class="bg-base-200 flex flex-row pl-1 pr-2 mt-2 gap-x-2 h-10 items-center rounded-box"
+>
 	<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 		><span class="border-b">mouse position</span></span
 	>
-	<input type="checkbox" disabled={disabledCandidate()} bind:checked={config.do_mouse_pos} class="checkbox checkbox-primary" />
+	<input
+		type="checkbox"
+		disabled={disabledCandidate()}
+		bind:checked={config.do_mouse_pos}
+		class="checkbox checkbox-primary"
+	/>
 	<div class="join">
-		<label class:input-disabled={disabledCandidate(!config.do_mouse_pos)} class="input input-xs input-bordered items-center gap-2 join-item">
-			x <input disabled={disabledCandidate(!config.do_mouse_pos)} type="number" min="0" bind:value={config.mouse_pos.x} />
+		<label
+			class:input-disabled={disabledCandidate(!config.do_mouse_pos)}
+			class="input input-xs input-bordered items-center gap-2 join-item"
+		>
+			x <input
+				disabled={disabledCandidate(!config.do_mouse_pos)}
+				type="number"
+				min="0"
+				bind:value={config.mouse_pos.x}
+			/>
 		</label>
-		<label class:input-disabled={disabledCandidate(!config.do_mouse_pos)} class="input input-xs input-bordered items-center gap-2 join-item">
-			y <input disabled={disabledCandidate(!config.do_mouse_pos)} type="number" min="0" bind:value={config.mouse_pos.y} />
+		<label
+			class:input-disabled={disabledCandidate(!config.do_mouse_pos)}
+			class="input input-xs input-bordered items-center gap-2 join-item"
+		>
+			y <input
+				disabled={disabledCandidate(!config.do_mouse_pos)}
+				type="number"
+				min="0"
+				bind:value={config.mouse_pos.y}
+			/>
 		</label>
 	</div>
-	<button disabled={disabledCandidate(!config.do_mouse_pos)} onclick={openPicker} class="btn btn-xs btn-primary flex-grow uppercase">pick</button>
+	<button
+		disabled={disabledCandidate(!config.do_mouse_pos)}
+		onclick={openPicker}
+		class="btn btn-xs btn-primary flex-grow uppercase">pick</button
+	>
 </div>
 
 <div id="click-options" class="grid grid-cols-2 gap-x-2 mt-2 h-28">
@@ -174,12 +277,18 @@
 		<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 			><span class="border-b">repeat</span></span
 		>
-		<Radio disabled={disabledCandidate()} bind:value={config.selected_count}>
+		<Radio disabled={disabledCandidate()} bind:value={config.repeat_type}>
 			{#snippet _forever()}
 				Until Stopped
 			{/snippet}
 			{#snippet _number(checked)}
-				<input class="input input-xs input-bordered" type="number" min="0" disabled={disabledCandidate(checked)} /> Times
+				<input
+					class="input input-xs input-bordered"
+					type="number"
+					min="0"
+					disabled={disabledCandidate(!checked)}
+					bind:value={config.repeat_x_count}
+				/> Times
 			{/snippet}
 		</Radio>
 	</div>
@@ -204,6 +313,6 @@
 		</a>
 	</div>
 	<span class="text-neutral uppercase font-appbartop ml-2"
-		><span class="border-b">built by mavdotjs</span></span
+		><span class="border-b">© 2024 mavdotjs.</span></span
 	>
 </div>
