@@ -101,13 +101,13 @@
 	let config = new SavedState();
 </script>
 
-<div class="bg-base-200 h-48 rounded-box px-1 flex flex-col pb-1">
+<div id="section-click-interval" class="bg-base-200 h-48 rounded-box px-1 flex flex-col pb-1">
 	<span class="text-neutral uppercase font-appbartop ml-1"
 		><span class="border-b">click interval</span></span
 		>
 		<Tabs disabled={disabledCandidate()} bind:tab={config.mode}>
 			{#snippet _random()}
-			<div class="flex flex-col flex-grow">
+			<div id="tab-random-click-interval" class="flex flex-col flex-grow">
 				<div class="join w-max">
 					<label class="input input-sm input-bordered items-center gap-2 join-item">
 						min: <input disabled={disabledCandidate()} type="number" min="0" bind:value={config.options_for_random.min} />ms
@@ -121,7 +121,7 @@
 			</div>
 		{/snippet}
 		{#snippet _fixed()}
-			<div class="flex flex-col flex-grow">
+			<div id="tab-random-click-interval" class="flex flex-col flex-grow">
 				<div class="grid grid-cols-2 grid-rows-2">
 					<label class="rounded-r-none rounded-b-none input input-sm input-bordered items-center flex gap-2">
 						<input disabled={disabledCandidate()} class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.h} />h
@@ -143,7 +143,7 @@
 	</Tabs>
 </div>
 
-<div class="bg-base-200 flex flex-row pl-1 pr-2 mt-2 gap-x-2 h-10 items-center rounded-box">
+<div id="section-mouse-position" class="bg-base-200 flex flex-row pl-1 pr-2 mt-2 gap-x-2 h-10 items-center rounded-box">
 	<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 		><span class="border-b">mouse position</span></span
 	>
@@ -159,8 +159,8 @@
 	<button disabled={disabledCandidate(!config.do_mouse_pos)} onclick={openPicker} class="btn btn-xs btn-primary flex-grow uppercase">pick</button>
 </div>
 
-<div class="grid grid-cols-2 gap-x-2 mt-2 h-28">
-	<div class="flex flex-col pl-1 bg-base-200 rounded-box">
+<div id="click-options" class="grid grid-cols-2 gap-x-2 mt-2 h-28">
+	<div id="section-click-type" class="flex flex-col pl-1 bg-base-200 rounded-box">
 		<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 			><span class="border-b">click type</span></span
 		>
@@ -174,7 +174,7 @@
 			{#snippet _double()}{/snippet}
 		</Tabs>
 	</div>
-	<div class="bg-base-200 pl-1 flex flex-col rounded-box">
+	<div id="section-repeat" class="bg-base-200 pl-1 flex flex-col rounded-box">
 		<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 			><span class="border-b">repeat</span></span
 		>
@@ -189,12 +189,12 @@
 	</div>
 </div>
 
-<div class="grid grid-cols-2 gap-4 h-16 mt-2 p-2 bg-base-200 rounded-box">
+<div id="main-buttons" class="grid grid-cols-2 gap-4 h-16 mt-2 p-2 bg-base-200 rounded-box">
 	<button class="btn btn-block btn-neutral">Start <kbd class="kbd">F6</kbd></button>
 	<button disabled={disabledCandidate()} class="btn btn-block btn-neutral">Settings</button>
 </div>
 
-<div class="flex flex-row h-8 bg-base-200 mt-2 items-center px-2 rounded-box">
+<div id="info" class="flex flex-row h-8 bg-base-200 mt-2 items-center px-2 rounded-box">
 	<div class="flex-grow flex">
 		<a use:fixedAnchor href="https://github.com/mavdotjs/lambda-autoclicker">
 			<svg viewBox="0 0 96 96" class="size-6" xmlns="http://www.w3.org/2000/svg"
