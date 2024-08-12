@@ -19,7 +19,6 @@
     })
 </script>
 
-
 <div class="!h-full w-full flex flex-col select-none pt-2 bg-base-100">
     <nav class="flex items-center mx-2 bg-base-200 pl-2 rounded-box">
         <!-- svelte-ignore a11y_interactive_supports_focus -->

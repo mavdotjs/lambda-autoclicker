@@ -21,28 +21,45 @@
 		button = $state<string>('left');
 		quantity = $state<string>('single');
 
-		mouse_pos_x = $state(0);
-		mouse_pos_y = $state(0);
+		do_mouse_pos = $state(false);
+		mouse_pos = $state<{ x: number, y: number }>({ x: 0, y: 0 });
 
 		constructor() {
 			$inspect(this.mode, this.options_for_fixed, this.options_for_random);
 			let first = true;
 			$effect(() => {
 				if (first) {
-					config.mode = localStorage.getItem('mode') || config.mode;
+					this.mode = localStorage.getItem('mode') || this.mode;
 					const fixedLoaded = localStorage.getItem('fixed');
-					config.options_for_fixed = fixedLoaded
+					this.options_for_fixed = fixedLoaded
 						? JSON.parse(fixedLoaded)
-						: config.options_for_fixed;
+						: this.options_for_fixed;
 					const randomLoaded = localStorage.getItem('random');
-					config.options_for_random = randomLoaded
+					this.options_for_random = randomLoaded
 						? JSON.parse(randomLoaded)
-						: config.options_for_random;
+						: this.options_for_random;
+
+					this.selected_count = localStorage.getItem('selected_count') || this.selected_count;
+					this.button = localStorage.getItem('mouse_button') || this.button;
+					this.quantity = localStorage.getItem('quantity') || this.quantity;
+
+					const loaded_mouse_pos = localStorage.getItem('pos')
+					this.mouse_pos = loaded_mouse_pos ? JSON.parse(loaded_mouse_pos) : this.mouse_pos
+					const loaded_do_mouse_pos = localStorage.getItem('use_mouse_pos')
+					this.do_mouse_pos = loaded_do_mouse_pos ? JSON.parse(loaded_do_mouse_pos) : this.do_mouse_pos
+
 					first = false;
 				}
 				localStorage.setItem('mode', this.mode);
 				localStorage.setItem('fixed', JSON.stringify(this.options_for_fixed));
 				localStorage.setItem('random', JSON.stringify(this.options_for_random));
+
+				localStorage.setItem('selected_count', this.selected_count)
+				localStorage.setItem('mouse_button', this.button)
+				localStorage.setItem('quantity', this.quantity)
+				localStorage.setItem('pos', JSON.stringify(this.mouse_pos))
+
+				localStorage.setItem('use_mouse_pos', JSON.stringify(this.do_mouse_pos))
 			});
 		}
 	}
@@ -77,13 +94,13 @@
 	<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 		><span class="border-b">mouse position</span></span
 	>
-	<input type="checkbox" class="checkbox checkbox-primary">
+	<input type="checkbox" bind:checked={config.do_mouse_pos} class="checkbox checkbox-primary">
 	<div class="join">
 		<label class="input input-xs input-bordered items-center gap-2 join-item">
-			x <input type="number" min="0" bind:value={config.mouse_pos_x} />
+			x <input type="number" min="0" bind:value={config.mouse_pos.x} />
 		</label>
 		<label class="input input-xs input-bordered items-center gap-2 join-item">
-			y <input type="number" min="0" bind:value={config.mouse_pos_y} />
+			y <input type="number" min="0" bind:value={config.mouse_pos.y} />
 		</label>
 	</div>
 	<button class="btn btn-xs btn-primary flex-grow uppercase">pick</button>
