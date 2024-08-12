@@ -34,6 +34,12 @@ jobs:
       - name: Build step
         run: "npm run build"
 
+      - name: Remove App Code
+        run: |
+          rm ./build/static/app.html
+          rm -rf ./build/static/app
+          rm -rf ./build/static/_app
+
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
