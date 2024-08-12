@@ -4,7 +4,8 @@
 	import Radio from '$lib/Radio.svelte';
 	import { getCurrentWebviewWindow, WebviewWindow } from '@tauri-apps/api/webviewWindow';
 	const appWindow = getCurrentWebviewWindow()
-	const clicking = $state(false);
+	let clicking = $state(false)
+	let picking = $state(false)
 
     async function openPicker() {
 		const pickerWindow = new WebviewWindow('picker', {
@@ -20,10 +21,12 @@
 			resizable: false
 		})
 		await pickerWindow.once('tauri://webview-created', async _ => {
-			await appWindow.hide()
+			picking = true
+			// await appWindow.hide()
 			console.log('created window')
 		})
 		await pickerWindow.once('tauri://destroyed', async _ => {
+			picking = false
 			await appWindow.show()
 		})
 		await pickerWindow.listen<[number, number]>('mouse-val', async e => {
@@ -39,6 +42,10 @@
 			e.preventDefault();
 			await open(a.href);
 		};
+	}
+
+	function disabledCandidate(value: boolean = false) {
+		return picking || clicking || value
 	}
 	class SavedState {
 		mode = $state<string>('random');
@@ -98,15 +105,15 @@
 	<span class="text-neutral uppercase font-appbartop ml-1"
 		><span class="border-b">click interval</span></span
 		>
-		<Tabs bind:tab={config.mode}>
+		<Tabs disabled={disabledCandidate()} bind:tab={config.mode}>
 			{#snippet _random()}
 			<div class="flex flex-col flex-grow">
 				<div class="join w-max">
 					<label class="input input-sm input-bordered items-center gap-2 join-item">
-						min: <input type="number" min="0" bind:value={config.options_for_random.min} />ms
+						min: <input disabled={disabledCandidate()} type="number" min="0" bind:value={config.options_for_random.min} />ms
 					</label>
 					<label class="input input-sm input-bordered items-center gap-2 join-item">
-						max: <input type="number" min="0" bind:value={config.options_for_random.max} />ms
+						max: <input disabled={disabledCandidate()} type="number" min="0" bind:value={config.options_for_random.max} />ms
 					</label>
 				</div>
 				<div class="flex-grow"></div>
@@ -117,16 +124,16 @@
 			<div class="flex flex-col flex-grow">
 				<div class="grid grid-cols-2 grid-rows-2">
 					<label class="rounded-r-none rounded-b-none input input-sm input-bordered items-center flex gap-2">
-						<input class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.h} />h
+						<input disabled={disabledCandidate()} class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.h} />h
 					</label>
 					<label class="rounded-l-none rounded-b-none input input-sm input-bordered items-center flex gap-2">
-						<input class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.m} />m
+						<input disabled={disabledCandidate()} class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.m} />m
 					</label>
 					<label class="rounded-r-none rounded-t-none input input-sm input-bordered items-center flex gap-2">
-						<input class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.s} />s
+						<input disabled={disabledCandidate()} class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.s} />s
 					</label>
 					<label class="rounded-l-none rounded-t-none input input-sm input-bordered items-center flex gap-2">
-						<input class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.ms} />ms
+						<input disabled={disabledCandidate()} class="flex-grow" type="number" min="0" bind:value={config.options_for_fixed.ms} />ms
 					</label>
 				</div>
 				<div class="flex-grow"></div>
@@ -140,16 +147,16 @@
 	<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 		><span class="border-b">mouse position</span></span
 	>
-	<input type="checkbox" bind:checked={config.do_mouse_pos} class="checkbox checkbox-primary" />
+	<input type="checkbox" disabled={disabledCandidate()} bind:checked={config.do_mouse_pos} class="checkbox checkbox-primary" />
 	<div class="join">
-		<label class:input-disabled={!config.do_mouse_pos} class="input input-xs input-bordered items-center gap-2 join-item">
-			x <input disabled={!config.do_mouse_pos} type="number" min="0" bind:value={config.mouse_pos.x} />
+		<label class:input-disabled={disabledCandidate(!config.do_mouse_pos)} class="input input-xs input-bordered items-center gap-2 join-item">
+			x <input disabled={disabledCandidate(!config.do_mouse_pos)} type="number" min="0" bind:value={config.mouse_pos.x} />
 		</label>
-		<label class:input-disabled={!config.do_mouse_pos} class="input input-xs input-bordered items-center gap-2 join-item">
-			y <input disabled={!config.do_mouse_pos} type="number" min="0" bind:value={config.mouse_pos.y} />
+		<label class:input-disabled={disabledCandidate(!config.do_mouse_pos)} class="input input-xs input-bordered items-center gap-2 join-item">
+			y <input disabled={disabledCandidate(!config.do_mouse_pos)} type="number" min="0" bind:value={config.mouse_pos.y} />
 		</label>
 	</div>
-	<button disabled={!config.do_mouse_pos} onclick={openPicker} class="btn btn-xs btn-primary flex-grow uppercase">pick</button>
+	<button disabled={disabledCandidate(!config.do_mouse_pos)} onclick={openPicker} class="btn btn-xs btn-primary flex-grow uppercase">pick</button>
 </div>
 
 <div class="grid grid-cols-2 gap-x-2 mt-2 h-28">
@@ -157,12 +164,12 @@
 		<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 			><span class="border-b">click type</span></span
 		>
-		<Tabs bind:tab={config.button}>
+		<Tabs disabled={disabledCandidate()} bind:tab={config.button}>
 			{#snippet _left()}{/snippet}
 			{#snippet _middle()}{/snippet}
 			{#snippet _right()}{/snippet}
 		</Tabs>
-		<Tabs bind:tab={config.quantity}>
+		<Tabs disabled={disabledCandidate()} bind:tab={config.quantity}>
 			{#snippet _single()}{/snippet}
 			{#snippet _double()}{/snippet}
 		</Tabs>
@@ -171,12 +178,12 @@
 		<span class="text-neutral uppercase font-appbartop ml-1 mb-1"
 			><span class="border-b">repeat</span></span
 		>
-		<Radio bind:value={config.selected_count}>
+		<Radio disabled={disabledCandidate()} bind:value={config.selected_count}>
 			{#snippet _forever()}
 				Until Stopped
 			{/snippet}
 			{#snippet _number(checked)}
-				<input class="input input-xs input-bordered" type="number" min="0" disabled={!checked} /> Times
+				<input class="input input-xs input-bordered" type="number" min="0" disabled={disabledCandidate(checked)} /> Times
 			{/snippet}
 		</Radio>
 	</div>
@@ -184,7 +191,7 @@
 
 <div class="grid grid-cols-2 gap-4 h-16 mt-2 p-2 bg-base-200 rounded-box">
 	<button class="btn btn-block btn-neutral">Start <kbd class="kbd">F6</kbd></button>
-	<button class="btn btn-block btn-neutral">Settings</button>
+	<button disabled={disabledCandidate()} class="btn btn-block btn-neutral">Settings</button>
 </div>
 
 <div class="flex flex-row h-8 bg-base-200 mt-2 items-center px-2 rounded-box">
