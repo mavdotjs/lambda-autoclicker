@@ -1,9 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	let { tab = $bindable(), map, ...props }: {
+	let { tab = $bindable(), ...props }: {
         tab: string | undefined;
-        map: { [x: string]: string }
         [x: `_${string}`]: Snippet<[]>;
 	} = $props();
 	const tabs = Object.fromEntries(Object.entries(props).filter((v) => v[0].startsWith('_')).map(([name, snippet]): [string, Snippet<[]>] => [name.replace('_', ''), snippet]));
@@ -14,7 +13,7 @@
 		<!-- svelte-ignore a11y_interactive_supports_focus -->
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_missing_attribute -->
-		<a role="tab" class="tab uppercase" onclick={() => tab = tabID} class:tab-active={tabID == tab}>{map[tabID]}</a>
+		<a role="tab" class="tab uppercase" onclick={() => tab = tabID} class:tab-active={tabID == tab}>{tabID}</a>
 	{/each}
 </div>
 
