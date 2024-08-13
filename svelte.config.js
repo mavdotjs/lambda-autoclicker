@@ -2,19 +2,14 @@ import appAdapter from '@sveltejs/adapter-static';
 import siteAdapter from "sveltekit-adapter-deno"
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
-const buildForTauri = process.env['FOR'] === 'tauri'
+const adapter = { 'build:app': appAdapter({ strict: false }), 'build:site': siteAdapter({ }) }[process.env['npm_lifecycle_event']]
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
-	// for more information about preprocessors
 	preprocess: vitePreprocess(),
 
 	kit: {
-		// adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://kit.svelte.dev/docs/adapters for more information about adapters.
-		adapter: buildForTauri?appAdapter({ strict: false }):siteAdapter({ })
+		adapter
 	}
 };
 
