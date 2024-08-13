@@ -20,7 +20,7 @@
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="flex-grow flex justify-between items-center">
             <div class="flex-grow flex justify-between" data-tauri-drag-region onmousedown={() => appWindow.startDragging()}>
-                <div class="font-appbartop"> <abbr title="Lambda">λ</abbr> Autoclicker <span class="text-slate-500 font-sans lowercase">v{version}</span></div>
+                <div class="font-appbartop"><abbr title="Lambds">λ</abbr> Autoclicker <span class="text-slate-500 font-sans lowercase">v{version}</span></div>
             </div>
             <div class="join">
                 <button class="join-item btn btn-xs btn-warning btn-square btn-outline no-animation" onclick={() => appWindow.minimize()}>

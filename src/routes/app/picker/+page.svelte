@@ -5,16 +5,14 @@
 	import { onMount } from 'svelte';
 	let keybind = $state('<none>');
     const appWindow = getCurrentWebviewWindow();
-	appWindow.listen('setkeybind', (e) => {
+	appWindow.listen<string>('setkeybind', (e) => {
 		keybind = e.payload;
 	});
 	onMount(async () => {
 		const screenSize = (await currentMonitor())?.size!;
 		await getCurrentWebviewWindow().setSize(screenSize);
 		await appWindow.listen('keybind', set_current_mouse);
-		await appWindow.listen('setkeybind', (e) => {
-			keybind = e.payload;
-		});
+		await appWindow.emit('loaded')
 	});
 
 	async function keyPress(e: KeyboardEvent) {
