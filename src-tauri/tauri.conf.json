@@ -1,6 +1,6 @@
 {
   "build": {
-    "beforeBuildCommand": "FOR=tauri npm run build",
+    "beforeBuildCommand": "npm run build:tauri",
     "beforeDevCommand": "npm run dev",
     "frontendDist": "../build",
     "devUrl": "http://localhost:5173"
@@ -46,7 +46,10 @@
   "identifier": "mavdotjs.lambdaclicker",
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI2M0Y5Rjg4NDI2QzFDRDQKUldUVUhHeENpSjgvdHB1MWpkVEF6N0VlUm9XeCtYT0JDNVRmZnJUekU3eE54eEs2OEhJNnZ2N0MK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI2M0Y5Rjg4NDI2QzFDRDQKUldUVUhHeENpSjgvdHB1MWpkVEF6N0VlUm9XeCtYT0JDNVRmZnJUekU3eE54eEs2OEhJNnZ2N0MK",
+      "endpoints": [
+        "https://github.com/mavdotjs/lambda-autoclicker/releases/latest/download/latest.json"
+      ]
     }
   },
   "app": {
