@@ -15,7 +15,6 @@
 	let max_input: HTMLInputElement;
 	const clickingStore = writable($state.snapshot(clicking)); // I had no idea how to do it otherwise
 	$effect(() => {
-		window.isClicking = clickingStore
 		clickingStore.set(clicking)
 	})
 	clickingStore.subscribe(async v => {
@@ -88,7 +87,7 @@
 		await pickerWindow.once('tauri://webview-created', async (_) => {
 			picking = true;
 			await appWindow.minimize();
-			setTimeout(async () => {
+			pickerWindow?.listen('loaded', async () => {
 				await pickerWindow?.emit('setkeybind', config.picker_keybind)
 			})
 		});
